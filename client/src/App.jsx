@@ -18,6 +18,7 @@ import LearningDashboard from './pages/learning/Dashboard'
 
 // Protected Pages
 import Dashboard from './pages/dashboard/Dashboard'
+import QuestionBankPage from './pages/mcqHub/QuestionBank'
 
 
 const App = () => {
@@ -43,6 +44,7 @@ const App = () => {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignUpPage />} />
+          <Route path="/mcq" element={<QuestionBankPage />} />
           <Route path="/courses/:slug" element={<LearningDashboard />} />
           <Route
             path="/courses/:slug/:topicId/:subtopicSlug"

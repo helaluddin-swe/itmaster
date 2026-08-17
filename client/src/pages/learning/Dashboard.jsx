@@ -12,7 +12,7 @@ export default function LearningDashboard() {
   const { darkMode } = useTheme();
   const { backendUrl } = useAppContext();
   const navigate = useNavigate();
-  const activeSlug = slug || 'full-stack-engineering';
+  const activeSlug = slug || 'operating-systems';
 
   const [courseData, setCourseData] = useState(null);
   const [loading, setLoading] = useState(true);
