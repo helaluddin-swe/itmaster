@@ -11,11 +11,11 @@ const RightSection = () => {
       <h1 className={`text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-tight leading-[1.08] ${
         darkMode ? "text-white" : "text-slate-900"
       }`}>
-        <span>Mastering </span>
+        <span>Master </span>
         
         {/* Gradient Text with Organic Underline SVG */}
         <span className="relative inline-block bg-linear-to-r from-emerald-500 via-teal-400 to-sky-500 bg-clip-text text-transparent pb-1">
-          BACKEND
+          Programmer
           <svg
             className="absolute -bottom-1 left-0 w-full h-3 text-emerald-400/80 pointer-events-none"
             viewBox="0 0 250 10"
@@ -33,7 +33,7 @@ const RightSection = () => {
         </span>
         
         <br />
-        <span>Software Engineering</span>
+        <span>IT Officer,Maintenance Engineer Govt. Job</span>
       </h1>
 
       {/* --- SUBTITLE WITH BOLD HIGHLIGHTS --- */}

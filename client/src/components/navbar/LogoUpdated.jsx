@@ -8,7 +8,7 @@ const LogoUpdated = ({onNavigate}) => {
           ? "text-white group-hover:text-indigo-400"
           : "text-slate-900 group-hover:text-indigo-600"
         }`}>
-        Backend
+        IT
         <span className="relative inline-block bg-linear-to-r from-emerald-500 via-teal-400 to-sky-500 bg-clip-text text-transparent pb-1">
           MASTER
           <svg
@@ -29,7 +29,7 @@ const LogoUpdated = ({onNavigate}) => {
       </h1>
       <p className={`text-[9px]  tracking-[0.2em] font-bold -mt-1 ${darkMode ? "text-slate-400" : "text-slate-500"
         }`}>
-        Complete Backend Preparation
+        Complete IT Preparation
       </p>
     </div>
   )

@@ -36,8 +36,8 @@ export default function AddNewQuestion({ editMode = false, existingData = null, 
     prevExams: initialPrevExams,
     explanation: existingData?.explanation || '',
     topic: initialTopic,
-    examAppearances: existingData?.examAppearances || [], 
-    relatedQuestions: initialRelated 
+    examAppearances: existingData?.examAppearances || [],
+    relatedQuestions: initialRelated
   });
 
   // Local state for the specific exam being added to the list
@@ -194,15 +194,18 @@ export default function AddNewQuestion({ editMode = false, existingData = null, 
             <div>
               <label className={labelClass}>Subject / Topic</label>
               <select name="topic" value={formData.topic} onChange={handleChange} className={inputClass}>
-                <option value="বাংলা সাহিত্য">📖 বাংলা সাহিত্য</option>
-                <option value="ইংরেজি ভাষা ও সাহিত্য">🔤 ইংরেজি ভাষা ও সাহিত্য</option>
-                <option value="বাংলাদেশ বিষয়াবলি">🇧🇩 বাংলাদেশ বিষয়াবলি</option>
-                <option value="সাধারণ বিজ্ঞান">🔬 সাধারণ বিজ্ঞান</option>
-                <option value="কম্পিউটার ও তথ্যপ্রযুক্তি">কম্পিউটার ও তথ্যপ্রযুক্তি</option>
-                <option value="গাণিতিক যুক্তি">গাণিতিক যুক্তি</option>
-                <option value="মানসিক দক্ষতা">মানসিক দক্ষতা</option>
-                <option value="আন্তর্জাতিক বিষয়াবলি">আন্তর্জাতিক বিষয়াবলি</option>
-                <option value="ভুগোল ও পরিবেশ">ভুগোল ও পরিবেশ</option>
+                <option value="Structured Programming and C/C++">💻 Structured Programming and C/C++</option>
+                <option value="Object-Oriented Programming (Java/C#)">☕ Object-Oriented Programming (Java/C#)</option>
+                <option value="Data Structures and Algorithms">⚡ Data Structures and Algorithms</option>
+                <option value="Discrete Mathematics">📐 Discrete Mathematics</option>
+                <option value="Digital Logic Design">🔌 Digital Logic Design</option>
+                <option value="Database Management Systems">🗄️ Database Management Systems</option>
+                <option value="Computer Architecture and Organization">⚙️ Computer Architecture and Organization</option>
+                <option value="Operating Systems">🖥️ Operating Systems</option>
+                <option value="Computer Networks">🌐 Computer Networks</option>
+                <option value="Software Engineering and Web Engineering">🛠️ Software Engineering and Web Engineering</option>
+                <option value="Cybersecurity and IT Service Management">🛡️ Cybersecurity and IT Service Management</option>
+                <option value="Artificial Intelligence and Neural Networks">🧠 Artificial Intelligence and Neural Networks</option>
               </select>
             </div>
           </div>

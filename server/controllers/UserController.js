@@ -1,5 +1,5 @@
 const User = require("../models/AuthModel.js");
-const History = require("../models/historySchemaModel.js");
+
 
 // 1. Update user stats after an exam (Lifetime Stats)
 exports.updateExamResult = async (req, res) => {

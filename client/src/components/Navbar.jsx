@@ -67,7 +67,7 @@ const Navbar = () => {
     };
 
     return (
-        <nav className={`fixed top-0 w-full px-4 sm:px-6 z-[9999] transition-all duration-300 ease-in-out ${
+        <nav className={`fixed top-0 w-full px-4 sm:px-6 z-9999 transition-all duration-300 ease-in-out ${
             scrolled 
                 ? (darkMode 
                     ? "bg-[#0b0f1a]/90 backdrop-blur-md border-b border-slate-800/80 py-2.5 shadow-lg" 

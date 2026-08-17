@@ -13,7 +13,8 @@ const UserSchema = new Schema({
     unique: true, 
     lowercase: true, 
     trim: true,
-    match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/, 'Please fill a valid email address']
+    // Updated regex supporting modern TLDs (.tech, .online, .co.uk, etc.)
+    match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Please fill a valid email address']
   },
   password: {
     type: String, 
@@ -22,7 +23,7 @@ const UserSchema = new Schema({
   },
   role: {
     type: String,
-    enum: ['user', 'admin'],
+    enum: ['user', 'admin', 'staff'],
     default: 'user'
   },
   stats: {
@@ -43,12 +44,23 @@ const UserSchema = new Schema({
     transform(doc, ret) {
       delete ret.password;
       delete ret.__v;
+      return ret;
+    }
+  },
+  toObject: {
+    transform(doc, ret) {
+      delete ret.password;
+      delete ret.__v;
+      return ret;
     }
   }
 });
 
-// Added Index for Leaderboard Performance
+// Single index for global leaderboard queries
 UserSchema.index({ "stats.totalPoints": -1 });
+
+// Compound index for role-filtered leaderboard queries (e.g., top 'user' accounts only)
+UserSchema.index({ role: 1, "stats.totalPoints": -1 });
 
 const User = mongoose.model('User', UserSchema);
 module.exports = User;

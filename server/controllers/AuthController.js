@@ -27,125 +27,215 @@ const generateToken = (user, expires = '7d') => {
   );
 };
 
-// 1. REGISTER USER
+
+
+// ==========================================
+// 1. STANDARD USER AUTHENTICATION
+// ==========================================
+
+// Register Standard User
 exports.registerUser = async (req, res) => {
   try {
-    const { name, email, password, role, adminSecret } = req.body;
+    const { name, email, password } = req.body;
 
-    // Check if user exists
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ success: false, message: "User already exists" });
+    if (!name || !email || !password) {
+      return res.status(400).json({ success: false, message: "Please fill in all fields" });
     }
 
-    // Role & Secret Key Verification
-    let finalRole = 'user'; 
-    if (role === 'admin') {
-      // Check against environment variable
-      if (adminSecret !== process.env.ADMIN_SECRET_CODE) {
-        return res.status(403).json({ 
-          success: false, 
-          message: "Unauthorized: Invalid Admin Secret Key" 
-        });
-      }
-      finalRole = 'admin';
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ success: false, message: "User already exists with this email" });
     }
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
+    // Explicitly enforce 'user' role
     const newUser = await User.create({ 
       name, 
       email, 
       password: hashedPassword,
-      role: finalRole,
-      isVerified: finalRole === 'admin' // Auto-verify admins if desired
+      role: 'user'
     });
+
+    const token = generateToken(newUser._id || newUser.id);
 
     res.status(201).json({ 
       success: true, 
-      message: `Registered successfully as ${finalRole}`, 
-      user: { id: newUser._id, name: newUser.name, email: newUser.email, role: newUser.role } 
+      message: "Registered successfully", 
+      token,
+      user: { 
+        _id: newUser._id, 
+        name: newUser.name, 
+        email: newUser.email, 
+        role: newUser.role 
+      } 
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    console.error("Register User Error:", error);
+    res.status(500).json({ success: false, message: error.message || "Server error" });
   }
 };
 
-// 2. LOGIN USER
+// Login Standard User
 exports.loginUser = async (req, res) => {
   try {
-    const { email, password, role, adminSecret } = req.body;
+    const { email, password } = req.body;
 
-    // 1. Find user by email and specific role
-    const user = await User.findOne({ email, role });
-    if (!user) return res.status(404).json({ success: false, message: "Account not found for this role" });
-
-    // 2. Verify Password
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ success: false, message: "Invalid credentials" });
-
-    // 3. IF Admin, Verify Secret Key
-    if (role === 'admin') {
-      if (adminSecret !== process.env.ADMIN_SECRET_CODE) {
-        return res.status(403).json({ success: false, message: "Invalid Admin Secret Key" });
-      }
+    if (!email || !password) {
+      return res.status(400).json({ success: false, message: "Please provide email and password" });
     }
 
-    const token = generateToken(user);
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ success: false, message: "Account not found with this email" });
+    }
+
+    // Optional check: Prevent Admin/Staff from logging in via standard user portal if desired
+    if (user.role === 'admin' || user.role === 'staff') {
+      return res.status(403).json({ 
+        success: false, 
+        message: "Admin/Staff accounts must sign in through the Admin Portal" 
+      });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ success: false, message: "Invalid credentials" });
+    }
+
+    const token = generateToken(user._id || user.id);
 
     res.status(200).json({
       success: true,
       token,
-      user: { id: user._id, name: user.name, email: user.email, role: user.role }
+      user: { 
+        _id: user._id, 
+        name: user.name, 
+        email: user.email, 
+        role: user.role 
+      }
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Server error" });
+    console.error("Login User Error:", error);
+    res.status(500).json({ success: false, message: "Server error during login" });
   }
 };
 
-// 3. GET CURRENT USER
-exports.getCurrentUser = async (req, res) => {
-  try {
-    const user = await User.findById(req.user.id).select("-password");
-    if (!user) return res.status(404).json({ success: false, message: "User not found" });
-    res.status(200).json({ success: true, user });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
 
-// 4. GET SPECIFIC PROFILE (Added to match route)
-exports.getUserProfile = async (req, res) => {
-  try {
-    const user = await User.findById(req.params.id).select("-password");
-    if (!user) return res.status(404).json({ success: false, message: "User not found" });
-    res.status(200).json({ success: true, user });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
+// ==========================================
+// 2. ADMIN & STAFF AUTHENTICATION
+// ==========================================
 
-// 5. GET ALL USERS
-exports.getAllUsers = async (req, res) => {
+// Register Admin / Staff
+exports.registerAdminStaff = async (req, res) => {
   try {
-    const users = await User.find({}).select('-password').sort({ createdAt: -1 });
-    res.json({ success: true, count: users.length, users });
-  } catch (error) {
-    res.status(500).json({ success: false, message: "Could not fetch users" });
-  }
-};
+    const { name, email, password, role, adminSecret } = req.body;
 
-// 6. DELETE ACCOUNT
-exports.deleteUserAccount = async (req, res) => {
-  try {
-    if (req.user.id !== req.params.id && req.user.role !== 'admin') {
-      return res.status(403).json({ success: false, message: "Unauthorized" });
+    if (!name || !email || !password || !adminSecret) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "All fields including Admin Secret Key are required" 
+      });
     }
-    const deletedUser = await User.findByIdAndDelete(req.params.id);
-    if (!deletedUser) return res.status(404).json({ success: false, message: "User not found" });
-    res.status(200).json({ success: true, message: "Account deleted" });
+
+    // Verify Admin Secret Key from process.env
+    if (adminSecret !== process.env.ADMIN_SECRET_CODE) {
+      return res.status(403).json({ 
+        success: false, 
+        message: "Unauthorized: Invalid Admin Secret Key" 
+      });
+    }
+
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ success: false, message: "Account already exists" });
+    }
+
+    // Assign requested role ('admin' or 'staff')
+    const assignedRole = (role === 'staff' || role === 'admin') ? role : 'admin';
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    const newAdmin = await User.create({ 
+      name, 
+      email, 
+      password: hashedPassword,
+      role: assignedRole,
+      isVerified: true
+    });
+
+    const token = generateToken(newAdmin._id || newAdmin.id);
+
+    res.status(201).json({ 
+      success: true, 
+      message: `Registered successfully as ${assignedRole}`, 
+      token,
+      user: { 
+        _id: newAdmin._id, 
+        name: newAdmin.name, 
+        email: newAdmin.email, 
+        role: newAdmin.role 
+      } 
+    });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    console.error("Register Admin Error:", error);
+    res.status(500).json({ success: false, message: error.message || "Server error" });
+  }
+};
+
+// Login Admin / Staff
+exports.loginAdminStaff = async (req, res) => {
+  try {
+    const { email, password, adminSecret } = req.body;
+
+    if (!email || !password || !adminSecret) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Email, password, and Admin Secret Key are required" 
+      });
+    }
+
+    // 1. Verify Secret Key first
+    if (adminSecret !== process.env.ADMIN_SECRET_CODE) {
+      return res.status(403).json({ success: false, message: "Invalid Admin Secret Key" });
+    }
+
+    // 2. Find user
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ success: false, message: "Admin/Staff account not found" });
+    }
+
+    // 3. Verify user has elevated permissions
+    if (user.role !== 'admin' && user.role !== 'staff') {
+      return res.status(403).json({ 
+        success: false, 
+        message: "Access Denied: Standard user accounts cannot log in here" 
+      });
+    }
+
+    // 4. Compare Password
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ success: false, message: "Invalid credentials" });
+    }
+
+    const token = generateToken(user._id || user.id);
+
+    res.status(200).json({
+      success: true,
+      token,
+      user: { 
+        _id: user._id, 
+        name: user.name, 
+        email: user.email, 
+        role: user.role 
+      }
+    });
+  } catch (error) {
+    console.error("Login Admin Error:", error);
+    res.status(500).json({ success: false, message: "Server error during admin login" });
   }
 };
