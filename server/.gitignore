@@ -1,0 +1,6 @@
+JWT_SECRET
+MONGO_URI
+.env
+node_modules
+.env
+*.env
